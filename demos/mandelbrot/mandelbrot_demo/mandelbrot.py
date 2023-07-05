@@ -1,5 +1,7 @@
 import time
 
+import dpnp
+from mandelbrot_demo.impl.arg_parser import parse_args
 from mandelbrot_demo.impl.impl_versioner import init_values
 from mandelbrot_demo.impl.impl_versioner import mandelbrot
 from mandelbrot_demo.impl.visualization import DISPLAY_H
@@ -38,7 +40,19 @@ class Fractal:
         return old_offset
 
     def calculate(self):
-        self.values = mandelbrot(self.w, self.h, self.zoom, self.offset, self.values)
+        if parse_args().variant == "Numba-DPEX".casefold():
+            c1 = dpnp.asarray([0.0, 0.0, 0.2])
+            c2 = dpnp.asarray([1.0, 0.7, 0.9])
+            c3 = dpnp.asarray([0.6, 1.0, 0.2])
+            a = self.offset[0]
+            b = self.offset[1]
+            self.values = mandelbrot(
+                c1, c2, c3, self.w, self.h, self.zoom, a, b, self.values
+            )
+        else:
+            self.values = mandelbrot(
+                self.w, self.h, self.zoom, self.offset, self.values
+            )
         self.need_recalculate = False
 
     def update(self):
